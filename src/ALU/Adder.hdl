@@ -1,0 +1,46 @@
+
+block AdderWithCarry {
+    in[16] operand1, operand2;
+    in carry_in;
+    out[16] result;
+    out carry_out;
+
+    wire[17] operand1_extended, operand2_extended;
+    wire[17] carry_in_extended;
+    wire[17] result_with_carry;
+
+    operand1_extended[16:0] = operand1;
+    operand1_extended[16] = 0#1;
+
+    operand2_extended[16:0] = operand2;
+    operand2_extended[16] = 0#1;
+
+    carry_in_extended[0] = carry_in;
+    carry_in_extended[17:1] = 0#16;
+
+    result_with_carry = operand1_extended + operand2_extended + carry_in_extended;
+
+    result = result_with_carry[16:0];
+    carry_out = result_with_carry[16];
+}
+
+block AdderWithSubtract {
+    in[16] operand1, operand2;
+    in subtract;
+    out[16] result;
+    out carry_out;
+
+    block AdderWithCarry adder;
+
+    wire[16] operand2_inverted;
+
+    // XOR -> invert operand2 when subtracting
+    operand2_inverted = operand2 ^ subtract;
+
+    adder.operand1 = operand1;
+    adder.operand2 = operand2_inverted;
+    adder.carry_in = subtract;
+
+    result = adder.result;
+    carry_out = adder.carry_out;
+}

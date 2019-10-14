@@ -1,0 +1,137 @@
+
+block Shift1 {
+    in[16] operand;
+    in enable;
+    in shift_right;
+    out[16] result;
+
+    wire no_shift, left_shift, right_shift;
+    wire[16] not_shifted, left_shifted, right_shifted;
+
+    no_shift = ~enable;
+    left_shift = enable & ~shift_right;
+    right_shift = enable & shift_right;
+
+    not_shifted = operand;
+    left_shifted[16:1] = operand[15:0];
+    left_shifted[1:0] = 0#1;
+    right_shifted[15:0] = operand[16:1];
+    right_shifted[16:15] = 0#1;
+
+    // Because tristate buffers are not supported yet we have to rely on the fact
+    // that the simulator ORs the output values of multiple components connected to the same connection
+    result = not_shifted & no_shift;
+    result = left_shifted & left_shift;
+    result = right_shifted & right_shift;
+}
+
+block Shift2 {
+    in[16] operand;
+    in enable;
+    in shift_right;
+    out[16] result;
+
+    wire no_shift, left_shift, right_shift;
+    wire[16] not_shifted, left_shifted, right_shifted;
+
+    no_shift = ~enable;
+    left_shift = enable & ~shift_right;
+    right_shift = enable & shift_right;
+
+    not_shifted = operand;
+    left_shifted[16:2] = operand[14:0];
+    left_shifted[2:0] = 0#2;
+    right_shifted[14:0] = operand[16:2];
+    right_shifted[16:14] = 0#2;
+
+    // Because tristate buffers are not supported yet we have to rely on the fact
+    // that the simulator ORs the output values of multiple components connected to the same connection
+    result = not_shifted & no_shift;
+    result = left_shifted & left_shift;
+    result = right_shifted & right_shift;
+}
+
+block Shift4 {
+    in[16] operand;
+    in enable;
+    in shift_right;
+    out[16] result;
+
+    wire no_shift, left_shift, right_shift;
+    wire[16] not_shifted, left_shifted, right_shifted;
+
+    no_shift = ~enable;
+    left_shift = enable & ~shift_right;
+    right_shift = enable & shift_right;
+
+    not_shifted = operand;
+    left_shifted[16:4] = operand[12:0];
+    left_shifted[4:0] = 0#4;
+    right_shifted[12:0] = operand[16:4];
+    right_shifted[16:12] = 0#4;
+
+    // Because tristate buffers are not supported yet we have to rely on the fact
+    // that the simulator ORs the output values of multiple components connected to the same connection
+    result = not_shifted & no_shift;
+    result = left_shifted & left_shift;
+    result = right_shifted & right_shift;
+}
+
+block Shift8 {
+    in[16] operand;
+    in enable;
+    in shift_right;
+    out[16] result;
+
+    wire no_shift, left_shift, right_shift;
+    wire[16] not_shifted, left_shifted, right_shifted;
+
+    no_shift = ~enable;
+    left_shift = enable & ~shift_right;
+    right_shift = enable & shift_right;
+
+    not_shifted = operand;
+    left_shifted[16:8] = operand[8:0];
+    left_shifted[8:0] = 0#8;
+    right_shifted[8:0] = operand[16:8];
+    right_shifted[16:8] = 0#8;
+
+    // Because tristate buffers are not supported yet we have to rely on the fact
+    // that the simulator ORs the output values of multiple components connected to the same connection
+    result = not_shifted & no_shift;
+    result = left_shifted & left_shift;
+    result = right_shifted & right_shift;
+}
+
+// This is a logarithmic shifter
+// It has 4 stages that each shift by a power of two (1, 2, 4 and 8)
+// Each stage is enabled if the corresponding bit in `bits` is set
+block Shifter {
+    in[16] operand;
+    in[4] bits;
+    in shift_right;
+    out[16] result;
+
+    block Shift1 shift1;
+    block Shift2 shift2;
+    block Shift4 shift4;
+    block Shift8 shift8;
+
+    shift1.operand = operand;
+    shift1.enable = bits[0];
+    shift1.shift_right = shift_right;
+
+    shift2.operand = shift1.result;
+    shift2.enable = bits[1];
+    shift2.shift_right = shift_right;
+
+    shift4.operand = shift2.result;
+    shift4.enable = bits[2];
+    shift4.shift_right = shift_right;
+
+    shift8.operand = shift4.result;
+    shift8.enable = bits[3];
+    shift8.shift_right = shift_right;
+
+    result = shift8.result;
+}
