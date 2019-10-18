@@ -1,0 +1,53 @@
+
+sequential block MaskedLoadRegister {
+    clock rising_edge clk;
+    in[16] value_in;
+    in[16] load_mask;
+    in load;
+    out[16] value;
+
+    value = (value_in & load_mask | value & ~load_mask) & load;
+    value = value & ~load;
+}
+
+block StatusRegister {
+    in clk;
+    in[16] value_in;
+    in value_in_carry;
+    in value_in_Z;
+    in value_in_EQ;
+    in value_in_LT;
+    in load;
+    in load_carry;
+    in load_Z;
+    in load_EQ;
+    in load_LT;
+    out[16] value;
+    out value_carry;
+    out value_Z;
+    out value_EQ;
+    out value_LT;
+
+    block MaskedLoadRegister reg_internal;
+
+    wire[16] mask_flags, mask;
+    wire[16] value_in_merged;
+
+    mask_flags = 1#16 & load_carry | 2#16 & load_Z | 4#16 & load_EQ | 8#16 & load_LT;
+    mask = 65535#16 & load | mask_flags;
+    value_in_merged = value_in & ~mask_flags;
+    value_in_merged[0] = value_in_carry & load_carry;
+    value_in_merged[1] = value_in_Z & load_Z;
+    value_in_merged[2] = value_in_EQ & load_EQ;
+    value_in_merged[3] = value_in_LT & load_LT;
+
+    reg_internal.clk = clk;
+    reg_internal.value_in = value_in_merged;
+    reg_internal.load_mask = mask;
+    reg_internal.load = load | load_carry | load_Z | load_EQ | load_LT;
+    value = reg_internal.value;
+    value_carry = reg_internal.value[0];
+    value_Z = reg_internal.value[1];
+    value_EQ = reg_internal.value[2];
+    value_LT = reg_internal.value[3];
+}
