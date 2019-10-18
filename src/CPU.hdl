@@ -28,11 +28,13 @@ block CPU {
     wire[16] data_bus;
     wire[16] addr_bus;
     wire SR_value_in_carry;
-    wire SR_value_in_LT;
+    wire SR_value_in_Z;
     wire SR_value_in_EQ;
+    wire SR_value_in_LT;
     wire SR_value_carry;
-    wire SR_value_LT;
+    wire SR_value_Z;
     wire SR_value_EQ;
+    wire SR_value_LT;
 
     wire[16] extended_immediate_value;
 
@@ -64,11 +66,13 @@ block CPU {
     extended_immediate_value[16:11] = 0#5;
 
     SR.value_in[0] = SR_value_in_carry;
-    SR.value_in[1] = SR_value_in_LT;
+    SR.value_in[1] = SR_value_in_Z;
     SR.value_in[2] = SR_value_in_EQ;
+    SR.value_in[3] = SR_value_in_LT;
     SR_value_carry = SR.value[0];
-    SR_value_LT = SR.value[1];
+    SR_value_Z = SR.value[1];
     SR_value_EQ = SR.value[2];
+    SR_value_LT = SR.value[3];
 
     data_bus = extended_immediate_value & (decoder.immediate_out & cycle.is_execute);
 
@@ -99,6 +103,9 @@ block CPU {
 
     data_bus = alu.result & (decoder.alu_out & cycle.is_execute);
     SR_value_in_carry = alu.carry_flag & (decoder.alu_carry_out & cycle.is_execute);
+    SR_value_in_Z = alu.zero_flag & (decoder.alu_zero_out & cycle.is_execute);
+    SR_value_in_EQ = alu.equal_flag & (decoder.alu_equal_out & cycle.is_execute);
+    SR_value_in_LT = alu.less_than_flag & (decoder.alu_less_than_out & cycle.is_execute);
     alu.operand1 = A.value;
     alu.operand2 = B.value & ~decoder.operand2_is_immediate;
     alu.operand2 = extended_immediate_value & decoder.operand2_is_immediate;
