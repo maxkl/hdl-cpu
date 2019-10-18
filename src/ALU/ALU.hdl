@@ -10,12 +10,15 @@ include "Adder.hdl"
 // 0x4: Shift left
 // 0x5: Shift right
 // 0x6: Add
-// 0x7: Subtract
+// 0x7: Subtract (also used for comparison)
 block ALU {
     in[16] operand1, operand2;
     in[3] fn;
     out[16] result;
-    out carry_out;
+    out carry_flag;
+    out zero_flag;
+    out equal_flag;
+    out less_than_flag;
 
     block Shifter shifter;
     block AdderWithSubtract adder;
@@ -79,5 +82,30 @@ block ALU {
     result = result_adder & (is_add | is_subtract);
 
     // Addition (and subtraction) is the only function that generates a carry bit
-    carry_out = adder.carry_out;
+    carry_flag = adder.carry_out;
+    // Nested ORs so that critical path is much shorter
+    zero_flag = ~(
+        (
+            (
+                (result[0] | result[1]) |
+                (result[2] | result[3])
+            ) |
+            (
+                (result[4] | result[5]) |
+                (result[6] | result[7])
+            )
+        ) |
+        (
+            (
+                (result[8] | result[9]) |
+                (result[10] | result[11])
+            ) |
+            (
+                (result[12] | result[13]) |
+                (result[14] | result[15])
+            )
+        )
+    );
+    equal_flag = zero_flag;
+    less_than_flag = ~(equal_flag | carry_flag);
 }

@@ -98,7 +98,7 @@ block CPU {
     // TODO: handle PC_in_cond
 
     data_bus = alu.result & (decoder.alu_out & cycle.is_execute);
-    SR_value_in_carry = alu.carry_out & (decoder.alu_carry_out & cycle.is_execute);
+    SR_value_in_carry = alu.carry_flag & (decoder.alu_carry_out & cycle.is_execute);
     alu.operand1 = A.value;
     alu.operand2 = B.value & ~decoder.operand2_is_immediate;
     alu.operand2 = extended_immediate_value & decoder.operand2_is_immediate;
