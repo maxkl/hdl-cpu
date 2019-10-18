@@ -1,0 +1,83 @@
+
+include "Shifter.hdl"
+include "Adder.hdl"
+
+// Function encoding:
+// 0x0: AND
+// 0x1: OR
+// 0x2: XOR
+// 0x3: NOT
+// 0x4: Shift left
+// 0x5: Shift right
+// 0x6: Add
+// 0x7: Subtract
+block ALU {
+    in[16] operand1, operand2;
+    in[3] fn;
+    out[16] result;
+    out carry_out;
+
+    block Shifter shifter;
+    block AdderWithSubtract adder;
+
+    wire[16] result_and;
+    wire[16] result_or;
+    wire[16] result_xor;
+    wire[16] result_not;
+    wire[16] result_shifter;
+    wire[16] result_adder;
+
+    wire is_and;
+    wire is_or;
+    wire is_xor;
+    wire is_not;
+    wire is_shift_left;
+    wire is_shift_right;
+    wire is_add;
+    wire is_subtract;
+
+    // Function decoding
+    is_and = ~fn[0] & ~fn[1] & ~fn[2];
+    is_or = fn[0] & ~fn[1] & ~fn[2];
+    is_xor = ~fn[0] & fn[1] & ~fn[2];
+    is_not = fn[0] & fn[1] & ~fn[2];
+    is_shift_left = ~fn[0] & ~fn[1] & fn[2];
+    is_shift_right = fn[0] & ~fn[1] & fn[2];
+    is_add = ~fn[0] & fn[1] & fn[2];
+    is_subtract = fn[0] & fn[1] & fn[2];
+
+    // AND
+    result_and = operand1 & operand2;
+
+    // OR
+    result_or = operand1 | operand2;
+
+    // XOR
+    result_xor = operand1 ^ operand2;
+
+    // NOT
+    result_not = ~operand1;
+
+    // Shift left/right
+    shifter.operand = operand1;
+    shifter.bits = operand2[4:0];
+    shifter.shift_right = is_shift_right;
+    result_shifter = shifter.result;
+
+    // Add/subtract
+    adder.operand1 = operand1;
+    adder.operand2 = operand2;
+    adder.subtract = is_subtract;
+    result_adder = adder.result;
+
+    // Enable only the result of the current function
+    result = result_and & is_and;
+    result = result_or & is_or;
+    result = result_xor & is_xor;
+    result = result_not & is_not;
+    result = result_shifter & (is_shift_left | is_shift_right);
+    result = result_adder & (is_add | is_subtract);
+
+    // Addition (and subtraction) is the only function that generates a carry bit
+    carry_out = adder.carry_out;
+}

@@ -1,0 +1,23 @@
+
+sequential block Counter3 {
+    clock rising_edge clk;
+    out[2] value;
+
+    value[0] = ~value[0] & ~value[1];
+    value[1] = value[0] & ~value[1];
+}
+
+block CycleCounter {
+    in clk;
+    out is_fetch;
+    out is_decode;
+    out is_execute;
+
+    block Counter3 ctr;
+
+    ctr.clk = ~clk;
+
+    is_fetch = ~ctr.value[0] & ~ctr.value[1];
+    is_decode = ctr.value[0] & ~ctr.value[1];
+    is_execute = ~ctr.value[0] & ctr.value[1];
+}

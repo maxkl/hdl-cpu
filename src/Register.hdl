@@ -1,0 +1,10 @@
+
+sequential block Register {
+    clock rising_edge clk;
+    in[16] value_in;
+    in load;
+    out[16] value;
+
+    value = value_in & load;
+    value = value & ~load;
+}

@@ -1,0 +1,112 @@
+
+include "Register.hdl"
+include "ProgramCounter.hdl"
+include "CycleCounter.hdl"
+include "InstructionDecoder.hdl"
+include "ALU/ALU.hdl"
+
+block CPU {
+    in clk;
+    in[16] mem_data_in;
+    out[16] mem_data_out;
+    out[16] mem_addr;
+    out mem_enable, mem_output_enable, mem_write_enable;
+
+    block Register A;
+    block Register B;
+    block Register Addr;
+    block Register SR;
+    block ProgramCounter PC;
+    block Register IR;
+
+    block ALU alu;
+
+    block CycleCounter cycle;
+
+    block InstructionDecoder decoder;
+
+    wire[16] data_bus;
+    wire[16] addr_bus;
+    wire SR_value_in_carry;
+    wire SR_value_in_LT;
+    wire SR_value_in_EQ;
+    wire SR_value_carry;
+    wire SR_value_LT;
+    wire SR_value_EQ;
+
+    wire[16] extended_immediate_value;
+
+    // Next cycle on falling edge of clk
+    cycle.clk = clk;
+
+    A.clk = clk;
+    B.clk = clk;
+    Addr.clk = clk;
+    SR.clk = clk;
+    PC.clk = clk;
+    IR.clk = clk;
+
+    mem_addr = addr_bus;
+
+    // Fetch stage
+    data_bus = mem_data_in & cycle.is_fetch;
+    addr_bus = PC.value & cycle.is_fetch;
+    mem_enable = 1#1 & cycle.is_fetch;
+    mem_output_enable = 1#1 & cycle.is_fetch;
+    IR.load = 1#1 & cycle.is_fetch;
+    IR.value_in = data_bus;
+
+    // Decode stage
+    decoder.instruction = IR.value;
+
+    // Execute stage
+    extended_immediate_value[11:0] = decoder.immediate_value;
+    extended_immediate_value[16:11] = 0#5;
+
+    SR.value_in[0] = SR_value_in_carry;
+    SR.value_in[1] = SR_value_in_LT;
+    SR.value_in[2] = SR_value_in_EQ;
+    SR_value_carry = SR.value[0];
+    SR_value_LT = SR.value[1];
+    SR_value_EQ = SR.value[2];
+
+    data_bus = extended_immediate_value & (decoder.immediate_out & cycle.is_execute);
+
+    data_bus = A.value & (decoder.A_out & cycle.is_execute);
+    A.value_in = data_bus;
+    A.load = 1#1 & (decoder.A_in & cycle.is_execute);
+
+    data_bus = B.value & (decoder.B_out & cycle.is_execute);
+    B.value_in = data_bus;
+    B.load = 1#1 & (decoder.B_in & cycle.is_execute);
+
+    data_bus = Addr.value & (decoder.Addr_out & cycle.is_execute);
+    addr_bus = Addr.value & cycle.is_execute;
+    Addr.value_in = data_bus;
+    Addr.load = 1#1 & (decoder.Addr_in & cycle.is_execute);
+
+    data_bus = SR.value & (decoder.SR_out & cycle.is_execute);
+    SR.value_in = data_bus & decoder.SR_in;
+    // TODO: make sep block for SR, need to be able to load only carry/LT/EQ without modifying rest
+    SR.load = 1#1 & (decoder.SR_in & cycle.is_execute);
+
+    data_bus = PC.value & (decoder.PC_out & cycle.is_execute);
+    PC.value_in = data_bus;
+    PC.load = 1#1 & (decoder.PC_in & cycle.is_execute);
+    // The PC will only increment if PC.load is '0'
+    PC.enable_count = 1#1 & cycle.is_execute;
+    // TODO: handle PC_in_cond
+
+    data_bus = alu.result & (decoder.alu_out & cycle.is_execute);
+    SR_value_in_carry = alu.carry_out & (decoder.alu_carry_out & cycle.is_execute);
+    alu.operand1 = A.value;
+    alu.operand2 = B.value & ~decoder.operand2_is_immediate;
+    alu.operand2 = extended_immediate_value & decoder.operand2_is_immediate;
+    alu.fn = decoder.alu_fn;
+
+    data_bus = mem_data_in & (decoder.mem_read & cycle.is_execute);
+    mem_data_out = data_bus & (decoder.mem_write & cycle.is_execute);
+    mem_enable = 1#1 & ((decoder.mem_read | decoder.mem_write) & cycle.is_execute);
+    mem_output_enable = 1#1 & (decoder.mem_read & cycle.is_execute);
+    mem_write_enable = 1#1 & (decoder.mem_write & cycle.is_execute);
+}

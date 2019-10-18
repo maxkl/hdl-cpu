@@ -1,0 +1,16 @@
+
+sequential block ProgramCounter {
+    clock rising_edge clk;
+    in[16] value_in;
+    in enable_count;
+    in load;
+    out[16] value;
+
+    wire[16] next_value;
+
+    next_value = value + 1#16;
+
+    value = value_in & load;
+    value = next_value & (enable_count & ~load);
+    value = value & (~enable_count & ~load);
+}
