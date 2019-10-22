@@ -2,7 +2,7 @@
 use std::path::PathBuf;
 use std::{error, fmt, io};
 use std::fs::File;
-use std::io::{BufReader, BufRead};
+use std::io::{BufReader, BufRead, BufWriter, Write};
 use std::num::ParseIntError;
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
@@ -13,6 +13,7 @@ use regex::Regex;
 pub enum AssemblerError {
     FileOpen(PathBuf, io::Error),
     FileRead(PathBuf, io::Error),
+    FileWrite(PathBuf, io::Error),
     Syntax(usize, String),
     InvalidInstruction(usize, String),
     MissingOperand(usize, String),
@@ -30,6 +31,7 @@ impl fmt::Display for AssemblerError {
         match self {
             AssemblerError::FileOpen(path, _) => write!(f, "unable to open {}", path.display()),
             AssemblerError::FileRead(path, _) => write!(f, "failed to read {}", path.display()),
+            AssemblerError::FileWrite(path, _) => write!(f, "failed to write {}", path.display()),
             AssemblerError::Syntax(line_number, line) => write!(f, "syntax error at line {}: {}", line_number, line),
             AssemblerError::InvalidInstruction(line_number, instr) => write!(f, "invalid instruction \"{}\" at line {}", instr, line_number),
             AssemblerError::MissingOperand(line_number, name) => write!(f, "missing operand \"{}\" at line {}", name, line_number),
@@ -49,6 +51,7 @@ impl error::Error for AssemblerError {
         match self {
             AssemblerError::FileOpen(_, io_error) => Some(io_error),
             AssemblerError::FileRead(_, io_error) => Some(io_error),
+            AssemblerError::FileWrite(_, io_error) => Some(io_error),
             AssemblerError::InvalidIntegerLiteral(_, _, parse_error) => Some(parse_error),
             _ => None,
         }
@@ -125,6 +128,18 @@ enum InstructionData {
     Immediate1Reference(String),
 }
 
+impl InstructionData {
+    fn encode(&self) -> u16 {
+        match self {
+            InstructionData::None => 0x0000,
+            InstructionData::Immediate1(value) => *value,
+            InstructionData::Register2(reg1, reg2) => (*reg2 as u16) << 3 | (*reg1 as u16),
+            InstructionData::Condition(cond) => *cond as u16,
+            InstructionData::Immediate1Reference(_) => unreachable!(),
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 struct Instruction {
     opcode: OpCode,
@@ -141,6 +156,10 @@ impl Instruction {
 
     fn size(&self) -> u16 {
         1
+    }
+
+    fn encode(&self) -> u16 {
+        (self.opcode as u16) << 11 | self.data.encode()
     }
 }
 
@@ -422,7 +441,17 @@ pub fn run(source_path: PathBuf, output_path: PathBuf) -> Result<(), AssemblerEr
         }
     }
 
-    // TODO: write to output file
+    let output_file = File::create(&output_path)
+        .map_err(|err| AssemblerError::FileOpen(output_path.clone(), err))?;
+
+    let mut output_writer = BufWriter::new(output_file);
+
+    for instruction in &instructions {
+        let encoded = instruction.encode();
+        let encoded_bytes = encoded.to_le_bytes();
+        output_writer.write_all(&encoded_bytes)
+            .map_err(|err| AssemblerError::FileWrite(output_path.clone(), err))?;
+    }
 
     Ok(())
 }
