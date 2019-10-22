@@ -1,6 +1,9 @@
 
 use std::{env, process};
 use std::path::{PathBuf, Path};
+use std::error::Error;
+
+use assembler::run;
 
 fn main() {
     let args = env::args().collect::<Vec<_>>();
@@ -27,5 +30,13 @@ fn main() {
         p
     };
 
-    // TODO
+    if let Err(err) = run(source_file_path, output_file_path) {
+        eprintln!("error: {}", err);
+
+        let mut err: &dyn Error = &err;
+        while let Some(source) = err.source() {
+            eprintln!("reason: {}", source);
+            err = source;
+        }
+    }
 }
