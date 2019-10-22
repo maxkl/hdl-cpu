@@ -1,0 +1,36 @@
+
+block ConditionChecker {
+    in[3] condition;
+    in carry_flag;
+    in zero_flag;
+    in equal_flag;
+    in less_than_flag;
+    out met;
+
+    wire is_none;
+    wire is_zero;
+    wire is_equal;
+    wire is_not_equal;
+    wire is_less_than;
+    wire is_less_than_or_equal;
+    wire is_greater_than;
+    wire is_greater_than_or_equal;
+
+    is_none = ~condition[0] & ~condition[1] & ~condition[2];
+    is_zero = condition[0] & ~condition[1] & ~condition[2];
+    is_equal = ~condition[0] & condition[1] & ~condition[2];
+    is_not_equal = condition[0] & condition[1] & ~condition[2];
+    is_less_than = ~condition[0] & ~condition[1] & condition[2];
+    is_less_than_or_equal = condition[0] & ~condition[1] & condition[2];
+    is_greater_than = ~condition[0] & condition[1] & condition[2];
+    is_greater_than_or_equal = condition[0] & condition[1] & condition[2];
+
+    met = 1#1 & is_none;
+    met = zero_flag & is_zero;
+    met = equal_flag & is_equal;
+    met = ~equal_flag & is_not_equal;
+    met = less_than_flag & is_less_than;
+    met = (less_than_flag | equal_flag) & is_less_than_or_equal;
+    met = (~less_than_flag & ~equal_flag) & is_greater_than;
+    met = ~less_than_flag & is_greater_than_or_equal;
+}

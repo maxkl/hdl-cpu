@@ -5,6 +5,7 @@ include "ProgramCounter.hdl"
 include "CycleCounter.hdl"
 include "InstructionDecoder.hdl"
 include "ALU/ALU.hdl"
+include "ConditionChecker.hdl"
 
 block CPU {
     in clk;
@@ -25,6 +26,8 @@ block CPU {
     block CycleCounter cycle;
 
     block InstructionDecoder decoder;
+
+    block ConditionChecker condition;
 
     wire[16] data_bus;
     wire[16] addr_bus;
@@ -87,10 +90,14 @@ block CPU {
 
     data_bus = PC.value & (decoder.PC_out & cycle.is_execute);
     PC.value_in = data_bus;
-    PC.load = 1#1 & (decoder.PC_in & cycle.is_execute);
+    condition.condition = decoder.PC_in_cond;
+    condition.carry_flag = SR.value_carry;
+    condition.zero_flag = SR.value_Z;
+    condition.equal_flag = SR.value_EQ;
+    condition.less_than_flag = SR.value_LT;
+    PC.load = condition.met & (decoder.PC_in & cycle.is_execute);
     // The PC will only increment if PC.load is '0'
     PC.enable_count = 1#1 & cycle.is_execute;
-    // TODO: handle PC_in_cond
 
     data_bus = alu.result & (decoder.alu_out & cycle.is_execute);
     alu.operand1 = A.value;
