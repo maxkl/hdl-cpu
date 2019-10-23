@@ -1,0 +1,6 @@
+
+include "CPU.hdl"
+
+block main {
+    block CPU cpu;
+}
