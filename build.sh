@@ -11,6 +11,7 @@ if [ -n "$1" ]; then
 else
     SRCFILE="main.hdl"
     OUTFILE="main.json"
+    HDLCFLAGS="$HDLCFLAGS -B=--no-io-components,--testbench,$SRCDIR/testbench.json"
 fi
 
 OUTPATH="$BUILDDIR/$OUTFILE"
