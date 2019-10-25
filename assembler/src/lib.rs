@@ -159,7 +159,7 @@ impl Instruction {
     }
 
     fn encode(&self) -> u16 {
-        (self.opcode as u16) << 11 | self.data.encode()
+        (self.opcode as u16) << 11 | (self.data.encode() & 0x7ff)
     }
 }
 
