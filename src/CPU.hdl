@@ -58,8 +58,7 @@ block CPU {
     decoder.instruction = IR.value;
 
     // Execute stage
-    extended_immediate_value[11:0] = decoder.immediate_value;
-    extended_immediate_value[16:11] = 0#5;
+    extended_immediate_value = 0#5 $ decoder.immediate_value;
 
     data_bus = extended_immediate_value & (decoder.immediate_out & cycle.is_execute);
 

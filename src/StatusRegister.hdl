@@ -33,7 +33,7 @@ block StatusRegister {
     wire[16] mask_flags, mask;
     wire[16] value_in_merged;
 
-    mask_flags = 1#16 & load_carry | 2#16 & load_Z | 4#16 & load_EQ | 8#16 & load_LT;
+    mask_flags = 0#12 $ load_LT $ load_EQ $ load_Z $ load_carry;
     mask = 65535#16 & load | mask_flags;
     value_in_merged = value_in & ~mask_flags;
     value_in_merged[0] = value_in_carry & load_carry;

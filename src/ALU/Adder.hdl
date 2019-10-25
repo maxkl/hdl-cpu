@@ -5,20 +5,9 @@ block AdderWithCarry {
     out[16] result;
     out carry_out;
 
-    wire[17] operand1_extended, operand2_extended;
-    wire[17] carry_in_extended;
     wire[17] result_with_carry;
 
-    operand1_extended[16:0] = operand1;
-    operand1_extended[16] = 0#1;
-
-    operand2_extended[16:0] = operand2;
-    operand2_extended[16] = 0#1;
-
-    carry_in_extended[0] = carry_in;
-    carry_in_extended[17:1] = 0#16;
-
-    result_with_carry = operand1_extended + operand2_extended + carry_in_extended;
+    result_with_carry = (0#1 $ operand1) + (0#1 $ operand2) + (0#16 $ carry_in);
 
     result = result_with_carry[16:0];
     carry_out = result_with_carry[16];
