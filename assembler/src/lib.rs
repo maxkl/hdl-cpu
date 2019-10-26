@@ -88,8 +88,9 @@ enum Register {
     A = 0x0,
     B = 0x1,
     Addr = 0x2,
-    SR = 0x3,
-    PC = 0x4,
+    SP = 0x3,
+    SR = 0x4,
+    PC = 0x5,
 }
 
 impl Register {
@@ -99,6 +100,7 @@ impl Register {
             "a" => Some(Register::A),
             "b" => Some(Register::B),
             "addr" => Some(Register::Addr),
+            "sp" => Some(Register::SP),
             "sr" => Some(Register::SR),
             "pc" => Some(Register::PC),
             _ => None,
