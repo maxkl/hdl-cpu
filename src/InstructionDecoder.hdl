@@ -4,14 +4,16 @@ block RegisterDecoder {
     out is_A;
     out is_B;
     out is_Addr;
+    out is_SP;
     out is_SR;
     out is_PC;
 
     is_A = ~reg[0] & ~reg[1] & ~reg[2];
     is_B = reg[0] & ~reg[1] & ~reg[2];
     is_Addr = ~reg[0] & reg[1] & ~reg[2];
-    is_SR = reg[0] & reg[1] & ~reg[2];
-    is_PC = ~reg[0] & ~reg[1] & reg[2];
+    is_SP = reg[0] & reg[1] & ~reg[2];
+    is_SR = ~reg[0] & ~reg[1] & reg[2];
+    is_PC = reg[0] & ~reg[1] & reg[2];
 }
 
 block InstructionDecoder {
@@ -22,6 +24,7 @@ block InstructionDecoder {
     out A_in, A_out;
     out B_in, B_out;
     out Addr_in, Addr_out;
+    out SP_in, SP_out;
     out SR_in, SR_carry_in, SR_zero_in, SR_equal_in, SR_less_than_in, SR_out;
     out PC_in, PC_out;
     out[3] PC_in_cond;
@@ -76,12 +79,14 @@ block InstructionDecoder {
     A_in = mov_target.is_A & is_mov;
     B_in = mov_target.is_B & is_mov;
     Addr_in = mov_target.is_Addr & is_mov;
+    SP_in = mov_target.is_SP & is_mov;
     SR_in = mov_target.is_SR & is_mov;
     PC_in = mov_target.is_PC & is_mov;
 
     A_out = mov_source.is_A & is_mov;
     B_out = mov_source.is_B & is_mov;
     Addr_out = mov_source.is_Addr & is_mov;
+    SP_out = mov_source.is_SP & is_mov;
     SR_out = mov_source.is_SR & is_mov;
     PC_out = mov_source.is_PC & is_mov;
 

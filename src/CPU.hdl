@@ -13,10 +13,12 @@ block CPU {
     out[16] mem_data_out;
     out[16] mem_addr;
     out mem_enable, mem_output_enable, mem_write_enable;
+    out mem_write_clk;
 
     block Register A;
     block Register B;
     block Register Addr;
+    block Register SP;
     block StatusRegister SR;
     block ProgramCounter PC;
     block Register IR;
@@ -40,9 +42,12 @@ block CPU {
     A.clk = clk;
     B.clk = clk;
     Addr.clk = clk;
+    SP.clk = clk;
     SR.clk = clk;
     PC.clk = clk;
     IR.clk = clk;
+
+    mem_write_clk = clk;
 
     mem_addr = addr_bus;
 
@@ -74,6 +79,10 @@ block CPU {
     addr_bus = Addr.value & cycle.is_execute;
     Addr.value_in = data_bus;
     Addr.load = 1#1 & (decoder.Addr_in & cycle.is_execute);
+
+    data_bus = SP.value & (decoder.SP_out & cycle.is_execute);
+    SP.value_in = data_bus;
+    SP.load = 1#1 & (decoder.SP_in & cycle.is_execute);
 
     data_bus = SR.value & (decoder.SR_out & cycle.is_execute);
     SR.value_in = data_bus & decoder.SR_in;
