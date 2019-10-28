@@ -192,7 +192,7 @@ pub fn run(source_path: PathBuf, output_path: PathBuf) -> Result<(), AssemblerEr
     let re = Regex::new(r"(?x)
 ^\s*  # Start of line
 (?:([a-zA-Z_]\w*)\s*:\s*)?  # Optional label
-# Instruction
+# Instruction (optional as lines may also contain only a label)
 (?:
   ([a-zA-Z.]+)  # Opcode
   # Operands
@@ -241,7 +241,7 @@ pub fn run(source_path: PathBuf, output_path: PathBuf) -> Result<(), AssemblerEr
                         let target_str = operand1
                             .ok_or_else(|| AssemblerError::MissingOperand(line_number, "target register".to_string()))?;
                         let source_str = operand2
-                            .ok_or_else(|| AssemblerError::MissingOperand(line_number, "target register".to_string()))?;
+                            .ok_or_else(|| AssemblerError::MissingOperand(line_number, "source register".to_string()))?;
                         if operand3.is_some() {
                             return Err(AssemblerError::TooManyOperands(line_number));
                         }
@@ -254,6 +254,10 @@ pub fn run(source_path: PathBuf, output_path: PathBuf) -> Result<(), AssemblerEr
                         Instruction::new(OpCode::MOV, InstructionData::Register2(target, source))
                     },
                     "ld" => {
+                        if operand1.is_some() {
+                            return Err(AssemblerError::TooManyOperands(line_number));
+                        }
+
                         Instruction::new(OpCode::LD, InstructionData::None)
                     },
                     "ldi" => {
@@ -278,9 +282,17 @@ pub fn run(source_path: PathBuf, output_path: PathBuf) -> Result<(), AssemblerEr
                         Instruction::new(OpCode::LDI, data)
                     },
                     "st" => {
+                        if operand1.is_some() {
+                            return Err(AssemblerError::TooManyOperands(line_number));
+                        }
+
                         Instruction::new(OpCode::ST, InstructionData::None)
                     },
                     "and" => {
+                        if operand1.is_some() {
+                            return Err(AssemblerError::TooManyOperands(line_number));
+                        }
+
                         Instruction::new(OpCode::AND, InstructionData::None)
                     },
                     "andi" => {
@@ -296,6 +308,10 @@ pub fn run(source_path: PathBuf, output_path: PathBuf) -> Result<(), AssemblerEr
                         Instruction::new(OpCode::ANDI, InstructionData::Immediate1(value))
                     },
                     "or" => {
+                        if operand1.is_some() {
+                            return Err(AssemblerError::TooManyOperands(line_number));
+                        }
+
                         Instruction::new(OpCode::OR, InstructionData::None)
                     },
                     "ori" => {
@@ -311,6 +327,10 @@ pub fn run(source_path: PathBuf, output_path: PathBuf) -> Result<(), AssemblerEr
                         Instruction::new(OpCode::ORI, InstructionData::Immediate1(value))
                     },
                     "xor" => {
+                        if operand1.is_some() {
+                            return Err(AssemblerError::TooManyOperands(line_number));
+                        }
+
                         Instruction::new(OpCode::XOR, InstructionData::None)
                     },
                     "xori" => {
@@ -326,9 +346,17 @@ pub fn run(source_path: PathBuf, output_path: PathBuf) -> Result<(), AssemblerEr
                         Instruction::new(OpCode::XORI, InstructionData::Immediate1(value))
                     },
                     "not" => {
+                        if operand1.is_some() {
+                            return Err(AssemblerError::TooManyOperands(line_number));
+                        }
+
                         Instruction::new(OpCode::NOT, InstructionData::None)
                     },
                     "add" => {
+                        if operand1.is_some() {
+                            return Err(AssemblerError::TooManyOperands(line_number));
+                        }
+
                         Instruction::new(OpCode::ADD, InstructionData::None)
                     },
                     "addi" => {
@@ -344,9 +372,17 @@ pub fn run(source_path: PathBuf, output_path: PathBuf) -> Result<(), AssemblerEr
                         Instruction::new(OpCode::ADDI, InstructionData::Immediate1(value))
                     },
                     "sub" => {
+                        if operand1.is_some() {
+                            return Err(AssemblerError::TooManyOperands(line_number));
+                        }
+
                         Instruction::new(OpCode::SUB, InstructionData::None)
                     },
                     "sl" => {
+                        if operand1.is_some() {
+                            return Err(AssemblerError::TooManyOperands(line_number));
+                        }
+
                         Instruction::new(OpCode::SL, InstructionData::None)
                     },
                     "sli" => {
@@ -362,6 +398,10 @@ pub fn run(source_path: PathBuf, output_path: PathBuf) -> Result<(), AssemblerEr
                         Instruction::new(OpCode::SLI, InstructionData::Immediate1(value))
                     },
                     "sr" => {
+                        if operand1.is_some() {
+                            return Err(AssemblerError::TooManyOperands(line_number));
+                        }
+
                         Instruction::new(OpCode::SR, InstructionData::None)
                     },
                     "sri" => {
@@ -377,6 +417,10 @@ pub fn run(source_path: PathBuf, output_path: PathBuf) -> Result<(), AssemblerEr
                         Instruction::new(OpCode::SRI, InstructionData::Immediate1(value))
                     },
                     "cmp" => {
+                        if operand1.is_some() {
+                            return Err(AssemblerError::TooManyOperands(line_number));
+                        }
+
                         Instruction::new(OpCode::CMP, InstructionData::None)
                     },
                     "cmpi" => {
