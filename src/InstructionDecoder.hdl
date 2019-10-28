@@ -33,6 +33,7 @@ block InstructionDecoder {
     out mem_read, mem_write;
 
     block RegisterDecoder mov_target, mov_source;
+    block RegisterDecoder jmp_source;
 
     wire[5] opcode;
     wire is_mov;
@@ -166,5 +167,12 @@ block InstructionDecoder {
 
     PC_in = 1#1 & is_jmp;
     PC_in_cond = jmp_cond & is_jmp;
-    Addr_out = 1#1 & is_jmp;
+
+    jmp_source.reg = instruction[6:3];
+    A_out = jmp_source.is_A & is_jmp;
+    B_out = jmp_source.is_B & is_jmp;
+    Addr_out = jmp_source.is_Addr & is_jmp;
+    SP_out = jmp_source.is_SP & is_jmp;
+    SR_out = jmp_source.is_SR & is_jmp;
+    PC_out = jmp_source.is_PC & is_jmp;
 }
