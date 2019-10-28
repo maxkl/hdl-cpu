@@ -26,16 +26,14 @@ st
 
 # Jump to subroutine
 ldi subroutine
-mov Addr, A
-jmp
+jmp A
 
 # The subroutine jumps here when it is done
 return:
 
 # Repeat the whole program
 ldi start
-mov Addr, A
-jmp
+jmp A
 
 subroutine:
     # Load value on top of the stack
@@ -70,5 +68,4 @@ subroutine:
 
     # Return
     ldi return
-    mov Addr, A
-    jmp
+    jmp A

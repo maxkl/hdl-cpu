@@ -22,8 +22,7 @@ wait_button:
     andi 0x0001
     # Repeat if button is not pressed
     ldi wait_button
-    mov Addr, A
-    jmp.z
+    jmp.z A
 
 # Light up the whole display
 ldi 0x0600
@@ -54,11 +53,9 @@ loop:
     mov B, A
     # Load loop start address
     ldi loop
-    mov Addr, A
     # If A < 10, repeat
-    jmp.lt
+    jmp.lt A
 
 # Repeat
 ldi start
-mov Addr, A
-jmp
+jmp A
