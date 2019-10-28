@@ -125,7 +125,7 @@ enum InstructionData {
     None,
     Immediate1(u16),
     Register2(Register, Register),
-    Condition(Condition),
+    Jump(Condition, Register),
 
     Immediate1Reference(String),
 }
@@ -136,7 +136,7 @@ impl InstructionData {
             InstructionData::None => 0x0000,
             InstructionData::Immediate1(value) => *value,
             InstructionData::Register2(reg1, reg2) => (*reg2 as u16) << 3 | (*reg1 as u16),
-            InstructionData::Condition(cond) => *cond as u16,
+            InstructionData::Jump(cond, reg) => (*reg as u16) << 3 | (*cond as u16),
             InstructionData::Immediate1Reference(_) => unreachable!(),
         }
     }
@@ -416,7 +416,16 @@ pub fn run(source_path: PathBuf, output_path: PathBuf) -> Result<(), AssemblerEr
                             Condition::None
                         };
 
-                        Instruction::new(OpCode::JMP, InstructionData::Condition(cond))
+                        let source_str = operand1
+                            .ok_or_else(|| AssemblerError::MissingOperand(line_number, "source register".to_string()))?;
+                        if operand2.is_some() {
+                            return Err(AssemblerError::TooManyOperands(line_number));
+                        }
+
+                        let source = Register::from_str(source_str)
+                            .ok_or_else(|| AssemblerError::InvalidRegister(line_number, source_str.to_string()))?;
+
+                        Instruction::new(OpCode::JMP, InstructionData::Jump(cond, source))
                     },
                     _ => return Err(AssemblerError::InvalidInstruction(line_number, instruction.clone())),
                 };
