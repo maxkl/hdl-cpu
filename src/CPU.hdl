@@ -59,7 +59,6 @@ block CPU {
     IR.load = 1#1 & cycle.is_fetch;
     IR.value_in = data_bus;
 
-    // Decode stage
     decoder.instruction = IR.value;
 
     // Execute stage

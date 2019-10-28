@@ -1,23 +1,22 @@
 
-sequential block Counter3 {
+sequential block Counter2 {
     clock rising_edge clk;
-    out[2] value;
+    out[1] value;
 
-    value[0] = ~value[0] & ~value[1];
-    value[1] = value[0] & ~value[1];
+    // '&' to work around settling of inverted clock being interpreted as rising edge
+    // FIXME: add asynchronous reset
+    value[0] = 1#1 & ~value[0];
 }
 
 block CycleCounter {
     in clk;
     out is_fetch;
-    out is_decode;
     out is_execute;
 
-    block Counter3 ctr;
+    block Counter2 ctr;
 
     ctr.clk = ~clk;
 
-    is_fetch = ~ctr.value[0] & ~ctr.value[1];
-    is_decode = ctr.value[0] & ~ctr.value[1];
-    is_execute = ~ctr.value[0] & ctr.value[1];
+    is_fetch = ~ctr.value[0];
+    is_execute = ctr.value[0];
 }
